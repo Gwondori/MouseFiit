@@ -34,6 +34,9 @@ namespace HookingTest
             }
 
             FormClosing += Form1_FormClosing;
+            SizeChanged += Form1_Resize;
+
+            notifyIcon1.Visible = false;
         }
 
         private bool KeyboardHook_KeyDown(int vkCode)
@@ -63,13 +66,19 @@ namespace HookingTest
                 IntPtr hWnd = SpyWindow.Spy.WindowFromPointEx(x, y);
                 // Get Selected Text and Copy to clipboard
                 SpyWindow.Spy.TextCopyFromWindow(hWnd);
+                //SendKeys.Send("^c");
             }
-            if (type == MouseEventType.WHEEL)
+            else if (type == MouseEventType.WHEEL)
             {
                 // Start, Get Window Handle.
                 IntPtr hWnd = SpyWindow.Spy.WindowFromPointEx(x, y);
                 // Get Selected Text and Paste from clipboard
-                SpyWindow.Spy.TextPasteFromWindow(hWnd);
+                //SpyWindow.Spy.TextPasteFromWindow(hWnd);
+                SendKeys.Send("^v");
+            }
+            else
+            {
+                // Nothing...
             }
             return true;
         }
@@ -95,6 +104,54 @@ namespace HookingTest
         private void AppendText(string text)
         {
             this.textBox1.AppendText(text + "\r\n");
+        }
+
+        private void HideAndTray()
+        {
+            notifyIcon1.BalloonTipTitle = "HookingTest";
+            notifyIcon1.BalloonTipText = "HookingTest";
+
+            notifyIcon1.ShowBalloonTip(1);
+
+            notifyIcon1.Visible = true;
+
+            this.ShowInTaskbar = false;
+            this.Hide();
+        }
+
+        private void ShowOnWindow()
+        {
+            this.Visible = true;
+            this.ShowInTaskbar = true;
+            this.WindowState = FormWindowState.Normal;
+            notifyIcon1.Visible = false;
+        }
+
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            if (FormWindowState.Minimized == this.WindowState)
+                HideAndTray();
+        }
+
+        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                ShowOnWindow();
+            }
+        }
+
+        private void showToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ShowOnWindow();
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            KeyboardHook.HookEnd();
+            MouseHook.HookEnd();
+            notifyIcon1.Dispose();
+            Application.ExitThread();
         }
     }
 }
